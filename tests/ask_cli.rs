@@ -6,10 +6,9 @@ fn present() -> Command {
 }
 
 #[test]
-fn cli_pick_by_number_prints_selected_to_stdout() {
+fn cli_pick_by_number_prints_choice_to_stdout() {
     let mut cmd = present();
-    cmd.arg("ask")
-        .arg("--message")
+    cmd.arg("--ask")
         .arg("Pick")
         .arg("--options")
         .arg(r#"["a","b","c"]"#)
@@ -20,8 +19,7 @@ fn cli_pick_by_number_prints_selected_to_stdout() {
 #[test]
 fn cli_pick_zero_exits_two_as_cancelled() {
     let mut cmd = present();
-    cmd.arg("ask")
-        .arg("--message")
+    cmd.arg("--ask")
         .arg("Pick")
         .arg("--options")
         .arg(r#"["a","b"]"#)
@@ -35,8 +33,7 @@ fn cli_pick_zero_exits_two_as_cancelled() {
 #[test]
 fn cli_pick_empty_line_exits_two_as_cancelled() {
     let mut cmd = present();
-    cmd.arg("ask")
-        .arg("--message")
+    cmd.arg("--ask")
         .arg("Pick")
         .arg("--options")
         .arg(r#"["a","b"]"#)
@@ -47,8 +44,7 @@ fn cli_pick_empty_line_exits_two_as_cancelled() {
 #[test]
 fn cli_pick_word_cancel_exits_two() {
     let mut cmd = present();
-    cmd.arg("ask")
-        .arg("--message")
+    cmd.arg("--ask")
         .arg("Pick")
         .arg("--options")
         .arg(r#"["a","b"]"#)
@@ -59,8 +55,7 @@ fn cli_pick_word_cancel_exits_two() {
 #[test]
 fn cli_invalid_pick_is_not_a_number() {
     let mut cmd = present();
-    cmd.arg("ask")
-        .arg("--message")
+    cmd.arg("--ask")
         .arg("Pick")
         .arg("--options")
         .arg(r#"["a","b"]"#)
@@ -74,8 +69,7 @@ fn cli_invalid_pick_is_not_a_number() {
 #[test]
 fn cli_out_of_range_pick_is_named() {
     let mut cmd = present();
-    cmd.arg("ask")
-        .arg("--message")
+    cmd.arg("--ask")
         .arg("Pick")
         .arg("--options")
         .arg(r#"["a","b"]"#)
@@ -87,23 +81,9 @@ fn cli_out_of_range_pick_is_named() {
 }
 
 #[test]
-fn cli_multiple_returns_comma_separated() {
-    let mut cmd = present();
-    cmd.arg("ask")
-        .arg("--message")
-        .arg("Pick")
-        .arg("--options")
-        .arg(r#"["a","b","c"]"#)
-        .arg("--multiple")
-        .write_stdin("1,3\n");
-    cmd.assert().success().stdout(predicate::eq("a,c\n"));
-}
-
-#[test]
 fn cli_empty_options_rejected() {
     let mut cmd = present();
-    cmd.arg("ask")
-        .arg("--message")
+    cmd.arg("--ask")
         .arg("Pick")
         .arg("--options")
         .arg("[]");
@@ -116,8 +96,7 @@ fn cli_empty_options_rejected() {
 #[test]
 fn cli_single_option_rejected_as_nothing_to_ask() {
     let mut cmd = present();
-    cmd.arg("ask")
-        .arg("--message")
+    cmd.arg("--ask")
         .arg("Pick")
         .arg("--options")
         .arg(r#"["only"]"#);
@@ -128,30 +107,19 @@ fn cli_single_option_rejected_as_nothing_to_ask() {
 }
 
 #[test]
-fn cli_missing_message_rejected() {
+fn cli_ask_without_options_is_rejected() {
     let mut cmd = present();
-    cmd.arg("ask").arg("--options").arg(r#"["a","b"]"#);
+    cmd.arg("--ask").arg("Pick");
     cmd.assert()
         .failure()
         .code(1)
-        .stderr(predicate::str::contains("needs --message"));
-}
-
-#[test]
-fn cli_missing_options_rejected() {
-    let mut cmd = present();
-    cmd.arg("ask").arg("--message").arg("Pick");
-    cmd.assert()
-        .failure()
-        .code(1)
-        .stderr(predicate::str::contains("needs --options"));
+        .stderr(predicate::str::contains("an ask needs options"));
 }
 
 #[test]
 fn cli_bad_options_json_rejected() {
     let mut cmd = present();
-    cmd.arg("ask")
-        .arg("--message")
+    cmd.arg("--ask")
         .arg("Pick")
         .arg("--options")
         .arg("not json");
@@ -164,8 +132,7 @@ fn cli_bad_options_json_rejected() {
 #[test]
 fn cli_empty_message_rejected() {
     let mut cmd = present();
-    cmd.arg("ask")
-        .arg("--message")
+    cmd.arg("--ask")
         .arg("")
         .arg("--options")
         .arg(r#"["a","b"]"#);
@@ -173,4 +140,24 @@ fn cli_empty_message_rejected() {
         .failure()
         .code(1)
         .stderr(predicate::str::contains("message is empty"));
+}
+
+#[test]
+fn cli_no_args_no_tty_errors_with_interactive_only_message() {
+    let mut cmd = present();
+    cmd.assert()
+        .failure()
+        .code(1)
+        .stderr(predicate::str::contains("interactive only"));
+}
+
+#[test]
+fn cli_auto_pick_plain_mode_prints_choice_without_json() {
+    let mut cmd = present();
+    cmd.env("PRESENT_AUTO_PICK", "1")
+        .arg("--ask")
+        .arg("Pick")
+        .arg("--options")
+        .arg(r#"["first","second"]"#);
+    cmd.assert().success().stdout(predicate::eq("first\n"));
 }

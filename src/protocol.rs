@@ -8,23 +8,24 @@ pub struct AskRequest {
     pub message: String,
     #[serde(deserialize_with = "require_two_or_more")]
     pub options: Vec<String>,
-    #[serde(default)]
-    pub multiple: bool,
 }
 
 #[derive(Debug, Serialize)]
 #[serde(untagged)]
 pub enum AskResponse {
-    Selected { selected: Vec<String> },
-    Cancelled { cancelled: bool },
+    Picked { choice: String },
+    Cancelled { choice: Option<String>, cancelled: bool },
 }
 
 impl AskResponse {
-    pub fn selected(items: Vec<String>) -> Self {
-        AskResponse::Selected { selected: items }
+    pub fn picked(value: String) -> Self {
+        AskResponse::Picked { choice: value }
     }
     pub fn cancelled() -> Self {
-        AskResponse::Cancelled { cancelled: true }
+        AskResponse::Cancelled {
+            choice: None,
+            cancelled: true,
+        }
     }
 }
 
@@ -34,6 +35,46 @@ pub struct ProgressUpdate {
     pub total: u64,
     #[serde(default)]
     pub label: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ShelfModule {
+    pub id: String,
+    pub name: String,
+    #[serde(default)]
+    pub description: String,
+    #[serde(default)]
+    pub input: String,
+    #[serde(default)]
+    pub output: String,
+    #[serde(default)]
+    pub entry: EntryField,
+    #[serde(default)]
+    pub tags: Vec<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct EntryField {
+    #[serde(default)]
+    pub cli: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Shelf {
+    pub modules: Vec<ShelfModule>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ModuleManifest {
+    pub name: String,
+    #[serde(default)]
+    pub description: String,
+    #[serde(default)]
+    pub input: String,
+    #[serde(default)]
+    pub output: String,
+    #[serde(default)]
+    pub entry: EntryField,
 }
 
 fn require_non_empty<'de, D>(deserializer: D) -> Result<String, D::Error>
@@ -72,6 +113,18 @@ impl AskRequest {
 }
 
 impl ProgressUpdate {
+    pub fn from_json_str(text: &str) -> Result<Self, serde_json::Error> {
+        serde_json::from_str(text)
+    }
+}
+
+impl Shelf {
+    pub fn from_json_str(text: &str) -> Result<Self, serde_json::Error> {
+        serde_json::from_str(text)
+    }
+}
+
+impl ModuleManifest {
     pub fn from_json_str(text: &str) -> Result<Self, serde_json::Error> {
         serde_json::from_str(text)
     }

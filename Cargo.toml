@@ -2,8 +2,9 @@
 name = "present"
 version = "0.1.0"
 edition = "2021"
-description = "decision-surfacing layer for agent-assisted choices"
+description = "terminal picker for humans and JSON ask/answer protocol for agents"
 license = "MIT"
+repository = "https://github.com/edersonff/present"
 
 [[bin]]
 name = "present"

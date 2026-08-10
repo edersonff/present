@@ -1,14 +1,14 @@
 {
   "schema": 1,
   "name": "present",
-  "description": "Surfaces a decision to the human and returns the pick, so an agent or module never prints 'please choose' to stdout and parses free text back",
-  "input": "a message and a list of options, either as flags or as json on stdin with --json",
-  "output": "the selected option on stdout, or json {selected:[...]} or {cancelled:true} with --json",
+  "description": "Terminal picker for humans and JSON ask/answer protocol for agents — one binary, two faces",
+  "input": "either --ask \"<message>\" --options '<json-array>' as flags, or {\"message\",\"options\"} on stdin with --json, or no args in a tty to browse the shelf",
+  "output": "the picked option on stdout (plain) or {\"choice\":\"a\"} (json), or the module command running (browse mode)",
   "kind": "module",
-  "tags": ["tui", "agent", "prompt", "choice", "rust"],
+  "tags": ["tui", "agent", "picker", "choice", "rust", "ratatui"],
   "license": "MIT",
-  "requires": [],
-  "entry": { "cli": "printf '{\"current\":1,\"total\":2,\"label\":\"example\"}\\n' | present progress --json" },
+  "requires": ["rust>=1.74"],
+  "entry": { "cli": "present --ask \"pick one\" --options '[\"a\",\"b\",\"c\"]'" },
   "example": "{\"message\":\"which thumbnail\",\"options\":[\"bold\",\"minimal\",\"photo\"]}",
   "cost": { "model": "free", "detail": "local binary, no network, no api" }
 }

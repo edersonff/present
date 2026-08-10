@@ -6,22 +6,34 @@ fn present() -> Command {
 }
 
 #[test]
-fn json_happy_path_force_pick_returns_first_option() {
+fn flags_json_auto_pick_returns_first_option_as_choice() {
     let mut cmd = present();
     cmd.env("PRESENT_AUTO_PICK", "1")
-        .arg("ask")
+        .arg("--ask")
+        .arg("pick")
+        .arg("--options")
+        .arg(r#"["a","b","c"]"#)
+        .arg("--json");
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains(r#""choice":"a""#));
+}
+
+#[test]
+fn stdin_json_auto_pick_returns_first_option_as_choice() {
+    let mut cmd = present();
+    cmd.env("PRESENT_AUTO_PICK", "1")
         .arg("--json")
         .write_stdin(r#"{"message":"pick","options":["a","b","c"]}"#);
     cmd.assert()
         .success()
-        .stdout(predicate::str::contains(r#""selected":["a"]"#));
+        .stdout(predicate::str::contains(r#""choice":"a""#));
 }
 
 #[test]
-fn json_empty_options_is_rejected_with_a_named_reason() {
+fn stdin_json_empty_options_is_rejected() {
     let mut cmd = present();
-    cmd.arg("ask")
-        .arg("--json")
+    cmd.arg("--json")
         .write_stdin(r#"{"message":"x","options":[]}"#);
     cmd.assert()
         .failure()
@@ -30,10 +42,9 @@ fn json_empty_options_is_rejected_with_a_named_reason() {
 }
 
 #[test]
-fn json_single_option_is_rejected_as_nothing_to_ask() {
+fn stdin_json_single_option_is_rejected() {
     let mut cmd = present();
-    cmd.arg("ask")
-        .arg("--json")
+    cmd.arg("--json")
         .write_stdin(r#"{"message":"x","options":["only"]}"#);
     cmd.assert()
         .failure()
@@ -42,10 +53,9 @@ fn json_single_option_is_rejected_as_nothing_to_ask() {
 }
 
 #[test]
-fn json_empty_message_is_rejected() {
+fn stdin_json_empty_message_is_rejected() {
     let mut cmd = present();
-    cmd.arg("ask")
-        .arg("--json")
+    cmd.arg("--json")
         .write_stdin(r#"{"message":"","options":["a","b"]}"#);
     cmd.assert()
         .failure()
@@ -54,9 +64,9 @@ fn json_empty_message_is_rejected() {
 }
 
 #[test]
-fn json_malformed_input_names_the_parse_error() {
+fn stdin_json_malformed_names_the_parse_error() {
     let mut cmd = present();
-    cmd.arg("ask").arg("--json").write_stdin("{not json");
+    cmd.arg("--json").write_stdin("{not json");
     cmd.assert()
         .failure()
         .code(1)
@@ -64,9 +74,9 @@ fn json_malformed_input_names_the_parse_error() {
 }
 
 #[test]
-fn json_empty_stdin_is_rejected() {
+fn stdin_json_empty_stdin_is_rejected() {
     let mut cmd = present();
-    cmd.arg("ask").arg("--json").write_stdin("");
+    cmd.arg("--json").write_stdin("");
     cmd.assert()
         .failure()
         .code(1)
@@ -74,10 +84,9 @@ fn json_empty_stdin_is_rejected() {
 }
 
 #[test]
-fn json_missing_field_is_named() {
+fn stdin_json_missing_field_is_named() {
     let mut cmd = present();
-    cmd.arg("ask")
-        .arg("--json")
+    cmd.arg("--json")
         .write_stdin(r#"{"options":["a","b"]}"#);
     cmd.assert()
         .failure()
@@ -86,10 +95,9 @@ fn json_missing_field_is_named() {
 }
 
 #[test]
-fn json_non_string_option_is_rejected() {
+fn stdin_json_non_string_option_is_rejected() {
     let mut cmd = present();
-    cmd.arg("ask")
-        .arg("--json")
+    cmd.arg("--json")
         .write_stdin(r#"{"message":"x","options":[1,2]}"#);
     cmd.assert()
         .failure()
@@ -98,7 +106,7 @@ fn json_non_string_option_is_rejected() {
 }
 
 #[test]
-fn json_hundred_options_force_pick_still_returns_first() {
+fn flags_json_hundred_options_auto_pick_still_returns_first() {
     let mut opts = String::from("[");
     for i in 1..=100 {
         if i > 1 {
@@ -107,35 +115,26 @@ fn json_hundred_options_force_pick_still_returns_first() {
         opts.push_str(&format!("\"o{i}\""));
     }
     opts.push(']');
-    let body = format!(r#"{{"message":"pick","options":{opts}}}"#);
     let mut cmd = present();
     cmd.env("PRESENT_AUTO_PICK", "1")
-        .arg("ask")
-        .arg("--json")
-        .write_stdin(body);
+        .arg("--ask")
+        .arg("pick")
+        .arg("--options")
+        .arg(opts)
+        .arg("--json");
     cmd.assert()
         .success()
-        .stdout(predicate::str::contains(r#""selected":["o1"]"#));
+        .stdout(predicate::str::contains(r#""choice":"o1""#));
 }
 
 #[test]
-fn json_multiple_flag_serializes_an_array_of_one_when_force_picked() {
+fn flags_json_without_auto_pick_and_without_tty_errors_with_next_step() {
     let mut cmd = present();
-    cmd.env("PRESENT_AUTO_PICK", "1")
-        .arg("ask")
-        .arg("--json")
-        .write_stdin(r#"{"message":"pick","options":["a","b"],"multiple":true}"#);
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains(r#""selected":["a"]"#));
-}
-
-#[test]
-fn json_without_force_pick_and_without_tty_errors_with_a_next_step() {
-    let mut cmd = present();
-    cmd.arg("ask")
-        .arg("--json")
-        .write_stdin(r#"{"message":"pick","options":["a","b"]}"#);
+    cmd.arg("--ask")
+        .arg("pick")
+        .arg("--options")
+        .arg(r#"["a","b"]"#)
+        .arg("--json");
     cmd.assert()
         .failure()
         .code(1)

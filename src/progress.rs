@@ -3,6 +3,15 @@ use std::io::{BufRead, Write};
 use crate::error::Result;
 use crate::protocol::{write_json, ProgressUpdate};
 
+pub fn run(json: bool) -> Result<()> {
+    if !json {
+        return Err(crate::error::PresentError::Usage(
+            "progress needs --json. pipe {current,total,label} lines on stdin".into(),
+        ));
+    }
+    run_json()
+}
+
 pub fn run_json() -> Result<()> {
     let stdin = std::io::stdin();
     let mut last: Option<ProgressUpdate> = None;
