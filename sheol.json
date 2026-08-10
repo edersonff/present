@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "name": "present",
+  "description": "Surfaces a decision to the human and returns the pick, so an agent or module never prints 'please choose' to stdout and parses free text back",
+  "input": "a message and a list of options, either as flags or as json on stdin with --json",
+  "output": "the selected option on stdout, or json {selected:[...]} or {cancelled:true} with --json",
+  "kind": "module",
+  "tags": ["tui", "agent", "prompt", "choice", "rust"],
+  "license": "MIT",
+  "requires": [],
+  "entry": { "cli": "printf '{\"current\":1,\"total\":2,\"label\":\"example\"}\\n' | present progress --json" },
+  "example": "{\"message\":\"which thumbnail\",\"options\":[\"bold\",\"minimal\",\"photo\"]}",
+  "cost": { "model": "free", "detail": "local binary, no network, no api" }
+}
