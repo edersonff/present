@@ -1,14 +1,28 @@
 {
   "schema": 1,
   "name": "present",
-  "description": "Terminal picker for humans and JSON ask/answer protocol for agents — one binary, two faces",
-  "input": "either --ask \"<message>\" --options '<json-array>' as flags, or {\"message\",\"options\"} on stdin with --json, or no args in a tty to browse the shelf",
-  "output": "the picked option on stdout (plain) or {\"choice\":\"a\"} (json), or the module command running (browse mode)",
+  "description": "Terminal picker for humans and JSON ask/answer protocol for agents \u2014 one binary, two faces",
+  "input": "a json ask request in a file as the first argument",
+  "output": "the json response on stdout",
   "kind": "module",
-  "tags": ["tui", "agent", "picker", "choice", "rust", "ratatui"],
+  "tags": [
+    "tui",
+    "agent",
+    "picker",
+    "choice",
+    "rust",
+    "ratatui"
+  ],
   "license": "MIT",
-  "requires": ["rust>=1.74"],
-  "entry": { "cli": "present --ask \"pick one\" --options '[\"a\",\"b\",\"c\"]'" },
+  "requires": [
+    "rust>=1.74"
+  ],
+  "entry": {
+    "cli": "bash try.sh"
+  },
   "example": "{\"message\":\"which thumbnail\",\"options\":[\"bold\",\"minimal\",\"photo\"]}",
-  "cost": { "model": "free", "detail": "local binary, no network, no api" }
+  "cost": {
+    "model": "free",
+    "detail": "local binary, no network, no api"
+  }
 }
