@@ -5,4 +5,4 @@ cd "$dir"
 if [ ! -f target/release/present ]; then
   cargo build --release 2>&1 | tail -1
 fi
-echo '{"message":"pick one","options":["a","b"]}' | PRESENT_AUTO_PICK=1 target/release/present ask --json 2>/dev/null
+PRESENT_AUTO_PICK=1 target/release/present --ask "pick one" --options '["a","b"]' --json
